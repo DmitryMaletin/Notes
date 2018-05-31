@@ -1,0 +1,236 @@
+* Config for SQL server and windows monitoring  
+  Original repo: [[https://github.com/influxdata/telegraf][The plugin-driven server agent for collecting & reporting metrics.]]
+  Fork repo: [[https://github.com/DmitryMaletin/telegraf]]
+  
+  Fork contains:
+  1. SQL server plugin
+     It allow to run cutom queries and collect results from the set of servers
+  2. Modified version of perf countres plugin   
+     It allows to collect performance counters from the set of servers 
+  
+** [[https://github.com/influxdata/telegraf#from-source][Build from source]]
+   Build on windows 
+   - Install Go
+   - Setup your GOPATH
+   - Run go get -d github.com/influxdata/telegraf
+   - Run cd $GOPATH/src/github.com/influxdata/telegraf
+   - Run git checkout -b MyFork
+   - Run git remote add dma https://github.com/DmitryMaletin/telegraf.git
+   - Run git fetch dma
+   - Run gir merge dma/dma
+   - Run make 
+** Install Elastic search & Kibana 
+   
+** Plugin configuration   
+   Globals & agent settings
+   #+BEGIN_SRC conf
+     # Global tags can be specified here in key="value" format.
+     [global_tags]
+       # dc = "us-east-1" # will tag all metrics with dc=us-east-1
+       # rack = "1a"
+       ## Environment variables can be used as tags, and throughout the config file
+       # user = "$USER"
+
+
+     # Configuration for telegraf agent
+     [agent]
+       ## Default data collection interval for all inputs
+       interval = "10s"
+       ## Rounds collection interval to 'interval'
+       ## ie, if interval="10s" then always collect on :00, :10, :20, etc.
+       round_interval = true
+
+       ## Telegraf will send metrics to outputs in batches of at most
+       ## metric_batch_size metrics.
+       ## This controls the size of writes that Telegraf sends to output plugins.
+       metric_batch_size = 1000
+
+       ## For failed writes, telegraf will cache metric_buffer_limit metrics for each
+       ## output, and will flush this buffer on a successful write. Oldest metrics
+       ## are dropped first when this buffer fills.
+       ## This buffer only fills when writes fail to output plugin(s).
+       metric_buffer_limit = 10000
+
+       ## Collection jitter is used to jitter the collection by a random amount.
+       ## Each plugin will sleep for a random time within jitter before collecting.
+       ## This can be used to avoid many plugins querying things like sysfs at the
+       ## same time, which can have a measurable effect on the system.
+       collection_jitter = "0s"
+
+       ## Default flushing interval for all outputs. You shouldn't set this below
+       ## interval. Maximum flush_interval will be flush_interval + flush_jitter
+       flush_interval = "10s"
+       ## Jitter the flush interval by a random amount. This is primarily to avoid
+       ## large write spikes for users running a large number of telegraf instances.
+       ## ie, a jitter of 5s and interval 10s means flushes will happen every 10-15s
+       flush_jitter = "0s"
+
+       ## By default or when set to "0s", precision will be set to the same
+       ## timestamp order as the collection interval, with the maximum being 1s.
+       ##   ie, when interval = "10s", precision will be "1s"
+       ##       when interval = "250ms", precision will be "1ms"
+       ## Precision will NOT be used for service inputs. It is up to each individual
+       ## service input to set the timestamp at the appropriate precision.
+       ## Valid time units are "ns", "us" (or "µs"), "ms", "s".
+       precision = ""
+
+       ## Logging configuration:
+       ## Run telegraf with debug log messages.
+       debug = false
+       ## Run telegraf in quiet mode (error log messages only).
+       quiet = false
+       ## Specify the log file name. The empty string means to log to stderr.
+       logfile = ""
+
+       ## Override default hostname, if empty use os.Hostname()
+       hostname = ""
+       ## If set to true, do no set the "host" tag in the telegraf agent.
+       omit_hostname = false
+   #+END_SRC
+   
+   Configure ElasticSearch output 
+   
+   #+BEGIN_SRC conf
+     ###############################################################################
+     #                            OUTPUT PLUGINS                                   #
+     ###############################################################################
+
+     # Configuration for Elasticsearch to send metrics to.
+     [[outputs.elasticsearch]]
+       ## The full HTTP endpoint URL for your Elasticsearch instance
+       ## Multiple urls can be specified as part of the same cluster,
+       ## this means that only ONE of the urls will be written to each interval.
+       urls = [ "http://localhost:9200" ] # required.
+       ## Elasticsearch client timeout, defaults to "5s" if not set.
+       timeout = "5s"
+       ## Set to true to ask Elasticsearch a list of all cluster nodes,
+       ## thus it is not necessary to list all nodes in the urls config option.
+       enable_sniffer = false
+       ## Set the interval to check if the Elasticsearch nodes are available
+       ## Setting to "0s" will disable the health check (not recommended in production)
+       health_check_interval = "10s"
+       ## HTTP basic authentication details (eg. when using Shield)
+       # username = "telegraf"
+       # password = "mypassword"
+
+       ## Index Config
+       ## The target index for metrics (Elasticsearch will create if it not exists).
+       ## You can use the date specifiers below to create indexes per time frame.
+       ## The metric timestamp will be used to decide the destination index name
+       # %Y - year (2016)
+       # %y - last two digits of year (00..99)
+       # %m - month (01..12)
+       # %d - day of month (e.g., 01)
+       # %H - hour (00..23)
+       # %V - week of the year (ISO week) (01..53)
+       ## Additionally, you can specify a tag name using the notation {{tag_name}}
+       ## which will be used as part of the index name. If the tag does not exist,
+       ## the default tag value will be used.
+       # index_name = "telegraf-{{host}}-%Y.%m.%d"
+       # default_tag_value = "none"
+       index_name = "telegraf-%Y.%m.%d" # required.
+
+       ## Optional TLS Config
+       # tls_ca = "/etc/telegraf/ca.pem"
+       # tls_cert = "/etc/telegraf/cert.pem"
+       # tls_key = "/etc/telegraf/key.pem"
+       ## Use TLS but skip chain & host verification
+       # insecure_skip_verify = false
+
+       ## Template Config
+       ## Set to true if you want telegraf to manage its index template.
+       ## If enabled it will create a recommended index template for telegraf indexes
+       manage_template = true
+       ## The template name used for telegraf indexes
+       template_name = "telegraf"
+       ## Set to true if you want telegraf to overwrite an existing template
+       overwrite_template = false
+   #+END_SRC
+
+   Configure Perf counters input 
+   
+   #+BEGIN_SRC conf
+     ###############################################################################
+     #                            INPUT PLUGINS                                    #
+     ###############################################################################
+
+     # Input plugin to counterPath Performance Counters on Windows operating systems
+     [[inputs.win_perf_counters]]
+       ## By default this plugin returns basic CPU and Disk statistics.
+       ## See the README file for more examples.
+       ## Uncomment examples below or write your own as you see fit. If the system
+       ## being polled for data does not have the Object at startup of the Telegraf
+       ## agent, it will not be gathered.
+       ## Settings:
+       # PrintValid = false # Print All matching performance counters
+       # Period after which counters will be reread from configuration and wildcards in counter paths expanded
+       CountersRefreshInterval="1m"
+
+       [[inputs.win_perf_counters.object]]
+	 # Processor usage, alternative to native, reports on a per core.
+	 Servers = [""]
+	 ObjectName = "Processor"
+	 Instances = ["*"]
+	 Counters = [
+	   "% Idle Time", "% Interrupt Time",
+	   "% Privileged Time", "% User Time",
+	   "% Processor Time"
+	 ]
+	 Measurement = "win_cpu"
+	 # Set to true to include _Total instance when querying for all (*).
+	 # IncludeTotal=false
+	 # Print out when the performance counter is missing from object, counter or instance.
+	 # WarnOnMissing = false
+
+       [[inputs.win_perf_counters.object]]
+	 # Disk times and queues
+	 Servers = [""]
+	 ObjectName = "LogicalDisk"
+	 Instances = ["*"]
+	 Counters = [
+	   "% Idle Time", "% Disk Time","% Disk Read Time",
+	   "% Disk Write Time", "% User Time", "Current Disk Queue Length"
+	 ]
+	 Measurement = "win_disk"
+
+       [[inputs.win_perf_counters.object]]
+	 Servers = [""]
+	 ObjectName = "System"
+	 Counters = ["Context Switches/sec","System Calls/sec"]
+	 Instances = ["------"]
+	 Measurement = "win_system"
+
+       [[inputs.win_perf_counters.object]]
+	 # Example counterPath where the Instance portion must be removed to get data back,
+	 # such as from the Memory object.
+	 Servers = [""]
+	 ObjectName = "Memory"
+	 Counters = [
+	   "Available Bytes", "Cache Faults/sec", "Demand Zero Faults/sec",
+	   "Page Faults/sec", "Pages/sec", "Transition Faults/sec",
+	   "Pool Nonpaged Bytes", "Pool Paged Bytes"
+	 ]
+	 Instances = ["------"] # Use 6 x - to remove the Instance bit from the counterPath.
+	 Measurement = "win_mem"
+
+   #+END_SRC
+
+   Configure SQL server input
+   
+   #+BEGIN_SRC conf
+   
+     [[inputs.sqlserver_extensible]]
+       servers = [
+	"Server=localhost;Port=1433;app name=telegraf;log=1;"
+	]
+       [[inputs.sqlserver_extensible.query]]
+	version="11"
+	statement="SELECT @@VERSION"
+	measurement="sql_server_perf_counters"
+   #+END_SRC
+
+** Tests & runs 
+   - run telegraf --config telegraf.conf
+** Create kibana graphs 
+   
+   
