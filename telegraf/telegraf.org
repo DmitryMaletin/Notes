@@ -168,7 +168,7 @@
 
        [[inputs.win_perf_counters.object]]
 	 # Processor usage, alternative to native, reports on a per core.
-	 Servers = [""]
+	 Servers = ["$COMPUTERNAME"]
 	 ObjectName = "Processor"
 	 Instances = ["*"]
 	 Counters = [
@@ -184,7 +184,7 @@
 
        [[inputs.win_perf_counters.object]]
 	 # Disk times and queues
-	 Servers = [""]
+	 Servers = ["$COMPUTERNAME"]
 	 ObjectName = "LogicalDisk"
 	 Instances = ["*"]
 	 Counters = [
@@ -194,7 +194,7 @@
 	 Measurement = "win_disk"
 
        [[inputs.win_perf_counters.object]]
-	 Servers = [""]
+	 Servers = ["$COMPUTERNAME"]
 	 ObjectName = "System"
 	 Counters = ["Context Switches/sec","System Calls/sec"]
 	 Instances = ["------"]
