@@ -203,7 +203,7 @@
        [[inputs.win_perf_counters.object]]
 	 # Example counterPath where the Instance portion must be removed to get data back,
 	 # such as from the Memory object.
-	 Servers = [""]
+	 Servers = ["$COMPUTERNAME"]
 	 ObjectName = "Memory"
 	 Counters = [
 	   "Available Bytes", "Cache Faults/sec", "Demand Zero Faults/sec",
