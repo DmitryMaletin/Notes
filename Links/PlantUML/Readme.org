@@ -1,3 +1,12 @@
 * Sprites & macroses
 - [[https://github.com/RicardoNiepel/Azure-PlantUML][PlantUML sprites, macros, and other includes for Azure services]]
 - [[https://github.com/RicardoNiepel/C4-PlantUML][C4-PlantUML combines the benefits of PlantUML and the C4 model for providing a simple way of describing and communicate software architectures]]
+- [[https://github.com/milo-minderbinder/AWS-PlantUML][PlantUML sprites, macros, and other includes for AWS components.]]
+- [[https://github.com/Roemer/plantuml-office][Office Icons for PlantUML]]
+- [[https://github.com/tupadr3/plantuml-icon-font-sprites][PlantUML Icon-Font Sprites]]
+
+* Blogs
+  - [[http://c4model.com/][The C4 model for software architecture]]
+  - [[https://azure-development.com/2018/09/11/save-the-world-from-powerpoint-cloud-solution-architects/][Save the world from Powerpoint Cloud Solution Architects]]
+* Examples
+ - [[https://groovy-lang.gitlab.io/101-scripts/asciidoctor/plantuml.html][PlantUML]]
