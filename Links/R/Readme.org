@@ -1,1 +1,10 @@
+* online books
 [[http://happygitwithr.com/index.html][Happy Git and GitHub for the useR]]
+[[https://geocompr.robinlovelace.net/][Geocomputation with R]]
+[[https://bookdown.org/yihui/rmarkdown/][R Markdown: The Definitive Guide]]
+[[https://bookdown.org/yihui/bookdown/][bookdown: Authoring Books and Technical Documents with R Markdown]]
+[[https://bookdown.org/yihui/blogdown/][blogdown: Creating Websites with R Markdown]]
+[[https://r4ds.had.co.nz/][R for Data Science]]
+[[http://r-pkgs.had.co.nz/][R packages]]
+[[https://adv-r.hadley.nz/][Advanced R]]
+[[https://advanced-r-solutions.rbind.io/][Advanced R Solutions]]
