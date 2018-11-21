@@ -1,1 +1,1 @@
-[[http://happygitwithr.com/index.html]]
+[[http://happygitwithr.com/index.html][Happy Git and GitHub for the useR]]
